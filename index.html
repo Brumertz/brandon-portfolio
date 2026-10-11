@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      Critical shell: painted by the browser before the stylesheet arrives, so
+      the page never shows the default white canvas between "document received"
+      and "CSS parsed" — on a real connection that gap is a few hundred
+      milliseconds and reads as a white flash on every load. `color-scheme`
+      additionally keeps the UA (scrollbar, form controls) dark from the same
+      first frame. This stays inline and render-blocking on purpose; the values
+      are duplicated in src/index.css.
+    -->
+    <style>
+      html {
+        background-color: #050816;
+        color-scheme: dark;
+      }
+    </style>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--
+      Poppins is self-hosted (see @font-face in src/index.css) so it starts
+      downloading at HTML-parse time instead of waiting for a cross-origin
+      stylesheet to arrive and be parsed first. That one saved round trip is
+      what keeps the hero <h1> from painting in a fallback font and then
+      repainting — the repaint is recorded as a new LCP candidate.
+
+      Every weight the first screen needs is preloaded: 400/500/600/700/800
+      for the navbar and hero, and 900 (.section-head) because the About
+      section mounts on first load rather than on scroll. Without a preload,
+      900 was discovered last and became the tail of the longest critical
+      request chain. `crossorigin` is mandatory for font preloads even
+      same-origin.
+    -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins-800-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins-700-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins-600-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins-500-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins-400-latin.woff2" crossorigin />
+    <!--
+      Weight 900 is `.section-head`, and the About section mounts on first
+      load, so this face is needed immediately too. Preloading it keeps it off
+      the tail of the document -> CSS -> font chain (246 ms real before, and the
+      single biggest contributor to the modelled LCP).
+    -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins-900-latin.woff2" crossorigin />
+
+    <title>BrtzDesigns | Full-Stack Developer & UI/UX Designer — Perth, Australia</title>
+    <meta
+      name="description"
+      content="BrtzDesigns — Brandon Brumertz, full-stack developer and UI/UX designer in Perth, Australia. C#, .NET, Python, JavaScript, Node.js, SQL and MongoDB. Live client work: bsindcare.com, dflorarte.com."
+    />
+    <meta name="author" content="Brandon Brumertz" />
+    <meta name="theme-color" content="#050816" />
+    <link rel="canonical" href="https://brtzdesigns.com/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="BrtzDesigns" />
+    <meta property="og:url" content="https://brtzdesigns.com/" />
+    <meta
+      property="og:title"
+      content="BrtzDesigns | Full-Stack Developer & UI/UX Designer"
+    />
+    <meta
+      property="og:description"
+      content="Perth-based full-stack developer and UI/UX designer. C#, .NET, Python, JavaScript, Node.js, SQL and MongoDB. Live client work: bsindcare.com, dflorarte.com."
+    />
+    <meta property="og:image" content="https://brtzdesigns.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_AU" />
+    <meta property="og:locale:alternate" content="es_ES" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://brtzdesigns.com/" />
+    <meta
+      name="twitter:title"
+      content="BrtzDesigns | Full-Stack Developer & UI/UX Designer"
+    />
+    <meta
+      name="twitter:description"
+      content="Perth-based full-stack developer and UI/UX designer. C#, .NET, Python, JavaScript, Node.js, SQL and MongoDB."
+    />
+    <meta name="twitter:image" content="https://brtzdesigns.com/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        "name": "BrtzDesigns",
+        "founder": {
+          "@type": "Person",
+          "name": "Brandon Brumertz",
+          "jobTitle": "Full-Stack Developer & UI/UX Designer",
+          "url": "https://brtzdesigns.com/",
+          "sameAs": [
+            "https://github.com/Brumertz",
+            "https://www.linkedin.com/in/brandon-morales-cordoba-592958280/"
+          ]
+        },
+        "description": "Full-stack web development, web design and UI/UX design for small businesses. Stack: C#, .NET, Python, JavaScript, Node.js, SQL, MongoDB, React.",
+        "url": "https://brtzdesigns.com/",
+        "email": "brtz.designs@gmail.com",
+        "telephone": "+61406771491",
+        "areaServed": "AU",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Perth",
+          "addressRegion": "WA",
+          "addressCountry": "AU"
+        },
+        "knowsAbout": [
+          "C#",
+          ".NET",
+          "Python",
+          "JavaScript",
+          "Node.js",
+          "React",
+          "SQL",
+          "MongoDB",
+          "HTML",
+          "CSS",
+          "UI/UX Design"
+        ],
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Services",
+          "itemListElement": [
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Web Design" } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Web Development" } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "UI/UX Design" } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Integrations & Databases" } }
+          ]
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      BrtzDesigns — full-stack developer and UI/UX designer in Perth, Australia.
+      Email: brtz.designs@gmail.com · Phone: +61 406 771 491
+    </noscript>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

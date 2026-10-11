@@ -1,0 +1,310 @@
+:root {
+  --padding-x-small: 16px;
+  --padding-x-large: 26px;
+  --padding-y-small: 20px;
+  --padding-y-large: 26px;
+
+  /* Custom Colors */
+  --color-secondary: #aaa6c3;
+  --color-tertiary: #151030;
+}
+
+/* Reusable Padding Classes */
+.padding-x {
+  padding-left: var(--padding-x-small);
+  padding-right: var(--padding-x-small);
+}
+
+@media (min-width: 640px) {
+  .padding-x {
+    padding-left: var(--padding-x-large);
+    padding-right: var(--padding-x-large);
+  }
+}
+
+.padding {
+  padding-left: var(--padding-x-small);
+  padding-right: var(--padding-x-small);
+  padding-top: var(--padding-y-small);
+  padding-bottom: var(--padding-y-small);
+}
+
+@media (min-width: 640px) {
+  .padding {
+    padding-left: var(--padding-x-large);
+    padding-right: var(--padding-x-large);
+    padding-top: var(--padding-y-large);
+    padding-bottom: var(--padding-y-large);
+  }
+}
+
+.hero-pattern {
+  background-image: url("/src/assets/herobg.webp");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Hero Text */
+.hero-head {
+  font-weight: 800;
+  color: white;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+@media (min-width: 640px) {
+  .hero-head {
+    font-size: 45px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-head {
+    font-size: 60px;
+    line-height: 1.1;
+  }
+}
+
+/* Hero Sub Text */
+.hero-sub {
+  color: #dfd9ff;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+@media (min-width: 640px) {
+  .hero-sub {
+    font-size: 22px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-sub {
+    font-size: 30px;
+    line-height: 1.4;
+  }
+}
+
+/* Hero 3D canvas.
+   The model is fetched only after the hero text has painted (see useMountAfter
+   Paint in Hero.jsx), so without this the desk would land as a hard cut over
+   the background. The canvas stays transparent until three.js has drawn its
+   first frame — Computers.jsx adds `.is-live` from useFrame — and then fades in. */
+.hero-canvas canvas {
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.hero-canvas canvas.is-live {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-canvas canvas {
+    transition: none;
+  }
+}
+
+/* Gesture and selection policy for every WebGL scene on the page — the hero
+ * desk, the planet in the footer, the star field and the desktop tech balls.
+ *
+ * drei's OrbitControls writes `touch-action: none` into the container
+ * react-three-fiber builds around each <canvas>. `touch-action` is resolved by
+ * intersecting the value of the hit-tested element with every ancestor, so that
+ * one `none` anywhere in a subtree makes the whole region swallow vertical
+ * panning. It blocked scrolling past the hero, and — because the planet sits in
+ * the middle of the footer's viewport — it blocked scrolling back up from the
+ * bottom too. Setting `pointer-events: none` on the <canvas> alone does
+ * nothing: the container underneath still claims the gesture.
+ *
+ * Passing `style={{ touchAction: "pan-y" }}` to <Canvas> does not work either.
+ * OrbitControls writes its own value back from a layout effect, *after* React
+ * has applied ours, so the prop is silently reverted (verified). An
+ * `!important` rule is the only override that holds.
+ *
+ * The selector matches the container's own offending declaration, so it covers
+ * every canvas on the page — including ones added later — without having to
+ * enumerate them. `pan-y` gives vertical gestures back to the page while
+ * leaving horizontal drags to the controls.
+ *
+ * These scenes are background artwork, so they must also never become a
+ * selection target: mobile browsers treat a long-press on a canvas like an
+ * image, with handles that drag a selection around. */
+[style*="touch-action: none"],
+[style*="touch-action:none"],
+canvas {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+[style*="touch-action: none"],
+[style*="touch-action:none"] {
+  touch-action: pan-y !important;
+}
+
+/* On a touch-only device no canvas may take a gesture at all — a horizontal
+   swipe would rotate the model instead of doing nothing. `pointer-events` is
+   inherited, so one `none` on the container covers its whole subtree, which
+   re-enables pointer events with its own inline `pointer-events: auto`. The
+   scenes keep animating on their own; only the drag input goes away. */
+@media (hover: none) {
+  [style*="touch-action: none"],
+  [style*="touch-action:none"] {
+    pointer-events: none !important;
+  }
+}
+
+/* Scroll-hint dot.
+   This was a framer-motion `animate={{ y: [0, 24, 0] }}` loop. It is the only
+   framer-motion usage in the eagerly loaded graph (every other consumer lives
+   in a deferred section), which made the whole ~109 KB motion chunk a static
+   import of the entry module — ESM cannot start evaluating the entry until its
+   transitive imports have arrived, so it directly delayed React's first commit
+   and therefore the LCP element. The CSS equivalent animates on the compositor
+   and costs 0 bytes of JS. */
+@keyframes hero-scroll-dot {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(24px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.hero-scroll-dot {
+  animation: hero-scroll-dot 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll-dot {
+    animation: none;
+  }
+}
+
+/* Section Text */
+.section-head {
+  color: white;
+  font-weight: 900;
+  font-size: 30px;
+  text-align: center;
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .section-head {
+    font-size: 40px;
+  }
+}
+
+@media (min-width: 640px) {
+  .section-head {
+    font-size: 50px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-head {
+    font-size: 60px;
+  }
+}
+
+.section-sub {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 14px;
+  color: var(--color-secondary);
+  text-align: center;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .section-sub {
+    font-size: 20px;
+  }
+}
+
+/* Technology grid — the static sphere shown instead of <BallCanvas> on
+   touch-only devices (see IS_TOUCH in Tech.jsx).
+
+   Background artwork, not interaction: the cell keeps its `title`/`aria-label`,
+   so all this has to do is reproduce what the WebGL version looks like. The
+   base tone and the two inset shadows stand in for the ball's material colour
+   (#aaa6c3) and the directional light it receives. */
+.tech-sphere {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #aaa6c3;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 62%;
+  box-shadow:
+    inset -11px -13px 24px rgba(4, 6, 22, 0.55),
+    inset 9px 9px 20px rgba(255, 255, 255, 0.3);
+  animation: tech-sphere-float 4.5s ease-in-out infinite;
+}
+
+/* What <Float> gave the WebGL balls — a gentle bob plus a sway — rebuilt in
+   CSS so the grid still breathes without owning a WebGL context.
+   `perspective` lives on the cell, which Tech.jsx only emits on touch-only
+   devices, so the desktop spheres are unaffected. */
+.tech-cell {
+  perspective: 420px;
+}
+
+@keyframes tech-sphere-float {
+  0%,
+  100% {
+    transform: translateY(2px) rotateY(-14deg);
+  }
+  50% {
+    transform: translateY(-8px) rotateY(14deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tech-sphere {
+    animation: none;
+    transform: none;
+  }
+}
+
+/* Responsive entrance for the About cards (see About.jsx).
+ *
+ * The section-level framer-motion stagger fires while these cards are still
+ * ~500ms below the fold, so on a phone they were always found already settled.
+ * Each card latches onto its own IntersectionObserver and plays this keyframe
+ * when it actually arrives. `animation-delay` is the stagger (set inline per
+ * card) and `forwards` holds the final state. */
+.card-reveal {
+  opacity: 0;
+  transform: translateY(100px);
+}
+
+.card-reveal.is-in {
+  animation: card-reveal 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes card-reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .card-reveal.is-in {
+    animation: none;
+  }
+}
