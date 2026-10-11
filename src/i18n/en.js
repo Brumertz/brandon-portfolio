@@ -202,7 +202,7 @@ const en = {
           { name: "tailwind", color: "orange-text-gradient" },
         ],
         image: herobg,
-        source_code_link: "https://github.com/Brumertz/3D-Portfolio",
+        source_code_link: "https://github.com/Brumertz/brandon-portfolio",
         live_link: "https://brtzdesigns.com",
       },
       {
