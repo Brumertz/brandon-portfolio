@@ -64,17 +64,23 @@ npm run preview
 ## Project Structure
 
 ```
-src/
-├── assets/          # Images and static resources
-├── components/      # React components
-│   └── canvas/      # 3D canvas components
-├── constants/       # Static data
-├── hoc/             # Higher Order Components
-├── utils/           # Utility functions
-├── App.jsx          # Main application
-├── main.jsx         # Entry point
-├── index.css        # Global styles
-└── styles.css       # Custom styles
+├── public/            # Static files (3D models, fonts)
+├── scripts/           # Build & QA tooling (smoke tests, Lighthouse, asset optimization)
+├── src/
+│   ├── assets/        # Images, icons and textures
+│   ├── components/    # React components (Navbar, Hero, About, Experience, Tech, Services, Works, Contact, Footer)
+│   │   └── canvas/    # Three.js scenes (Computers, Earth, Stars, Ball) + renderer config
+│   ├── constants/     # Static data (social links, contact info)
+│   ├── hoc/           # SectionWrapper HOC (animated titles + section id)
+│   ├── hooks/         # Custom hooks (useInView)
+│   ├── i18n/          # Translations (en.js, es.js) + LocaleProvider / useLocale
+│   ├── utils/         # Animation helpers (Framer Motion variants)
+│   ├── App.jsx        # Main application (progressive lazy section mounting)
+│   ├── main.jsx       # Entry point
+│   ├── index.css      # Global styles
+│   └── styles.css     # Custom styles
+├── index.html         # HTML shell (SEO metadata, JSON-LD)
+└── vite.config.js     # Vite config + manual chunk strategy
 ```
 
 ## License
