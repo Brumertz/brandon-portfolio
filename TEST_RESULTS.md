@@ -7,27 +7,27 @@
 
 ## 🐛 Bug Fixes Validated
 
-### Bug 1 — Flash / parpadeo al iniciar la pagina
-**Causa raiz:** `font-display: swap` en los 12 `@font-face` de Poppins.
-En primera carga fria el browser renderizaba con la fuente de sistema (Arial) y cuando Poppins terminaba de descargar hacia un *swap* visible — el layout saltaba porque las metricas de ambas fuentes son diferentes.
+### Bug 1 — Flash on initial page load
+**Root cause:** `font-display: swap` on the 12 Poppins `@font-face` rules.
+On a cold first load the browser rendered with the system font (Arial) and, when Poppins finished downloading, a visible *swap* occurred — the layout jumped because the metrics of both fonts differ.
 
-**Fix aplicado:**
-- `font-display: swap` → `font-display: optional` en todos los `@font-face` de Poppins
-- Nuevo `@font-face "Poppins Fallback"` con `size-adjust: 105%` para que Arial imite las metricas de Poppins (sin swap perceptible)
-- Stack de fuentes actualizado: `"Poppins", "Poppins Fallback", sans-serif`
+**Fix applied:**
+- `font-display: swap` → `font-display: optional` on all Poppins `@font-face` rules
+- New `@font-face "Poppins Fallback"` with `size-adjust: 105%` so Arial mimics Poppins metrics (no perceptible swap)
+- Font stack updated: `"Poppins", "Poppins Fallback", sans-serif`
 
-**Resultado:** ✅ **CLS = 0** (ningun pixel de layout shift medido)
+**Result:** ✅ **CLS = 0** (zero layout shift pixels measured)
 
 ---
 
-### Bug 2 — Corte al hacer scroll hacia Work Experience
-**Causa raiz:** La funcion `evaluate()` en `Sections` (`App.jsx`) se ejecutaba **sincronamente** al montar el componente. Esto montaba la seccion `About` antes de que el browser hubiese pintado el Hero, provocando un layout shift visible.
+### Bug 2 — Cut when scrolling to Work Experience
+**Root cause:** The `evaluate()` function in `Sections` (`App.jsx`) ran **synchronously** when the component mounted. This mounted the `About` section before the browser had painted the Hero, causing a visible layout shift.
 
-**Fix aplicado:**
-- `evaluate()` diferida a `requestAnimationFrame()` para que el Hero pinte primero
-- Secciones en carga devuelven `<div style={{ minHeight: "1px" }}>` en vez de `null` para mantener la posicion del sentinel
+**Fix applied:**
+- `evaluate()` deferred to `requestAnimationFrame()` so the Hero paints first
+- Loading sections return `<div style={{ minHeight: "1px" }}>` instead of `null` to keep the sentinel's position
 
-**Resultado:** ✅ Sin saltos medibles al hacer scroll
+**Result:** ✅ No measurable jumps when scrolling
 
 ---
 
@@ -35,47 +35,47 @@ En primera carga fria el browser renderizaba con la fuente de sistema (Arial) y 
 
 ### Core Web Vitals
 
-| Metrica | Valor | Score | Estado |
+| Metric | Value | Score | Status |
 |---------|-------|-------|--------|
-| First Contentful Paint (FCP) | 1.7 s | 92/100 | 🟢 Bueno |
-| Largest Contentful Paint (LCP) | 2.5 s | 90/100 | 🟢 Bueno |
-| **Cumulative Layout Shift (CLS)** | **0** | **100/100** | 🟢 Perfecto |
-| Speed Index | 2.5 s | 98/100 | 🟢 Excelente |
-| Total Blocking Time (TBT) | 5,870 ms | 0/100 | 🔴 Alto* |
-| Time to Interactive (TTI) | 13.7 s | 10/100 | 🔴 Alto* |
+| First Contentful Paint (FCP) | 1.7 s | 92/100 | 🟢 Good |
+| Largest Contentful Paint (LCP) | 2.5 s | 90/100 | 🟢 Good |
+| **Cumulative Layout Shift (CLS)** | **0** | **100/100** | 🟢 Perfect |
+| Speed Index | 2.5 s | 98/100 | 🟢 Excellent |
+| Total Blocking Time (TBT) | 5,870 ms | 0/100 | 🔴 High* |
+| Time to Interactive (TTI) | 13.7 s | 10/100 | 🔴 High* |
 
-> *El TBT/TTI alto es el costo conocido del modelo 3D de Three.js (~820 KB WebGL). Es inherente a la funcionalidad, no es un bug visual.
+> *The high TBT/TTI is the known cost of the Three.js 3D model (~820 KB WebGL). It is inherent to the functionality, not a visual bug.
 
 ---
 
-### Auditorias destacadas
+### Notable Audits
 
-| Auditoria | Estado | Detalle |
+| Audit | Status | Detail |
 |-----------|--------|---------|
-| font-display | ✅ Paso | optional no genera FOUT |
-| cumulative-layout-shift | ✅ 0 | Sin layout shifts |
-| render-blocking-resources | ⚠️ 50/100 | Fuentes preloadeadas — sin impacto real |
-| enable-text-compression | ⚠️ En prod | CDN/Nginx activa gzip automaticamente. Ahorro estimado: 832 KiB |
-| unused-javascript | ⚠️ 0/100 | Three.js completo requerido para el modelo 3D |
-| network-payload | ⚠️ 50/100 | Total: 2,670 KiB — dominado por el modelo WebGL |
+| font-display | ✅ Pass | optional generates no FOUT |
+| cumulative-layout-shift | ✅ 0 | No layout shifts |
+| render-blocking-resources | ⚠️ 50/100 | Fonts preloaded — no real impact |
+| enable-text-compression | ⚠️ In prod | CDN/Nginx enables gzip automatically. Estimated savings: 832 KiB |
+| unused-javascript | ⚠️ 0/100 | Full Three.js required for the 3D model |
+| network-payload | ⚠️ 50/100 | Total: 2,670 KiB — dominated by the WebGL model |
 
 ---
 
-## 📁 Archivos modificados
+## 📁 Modified Files
 
-| Archivo | Cambio |
+| File | Change |
 |---------|--------|
-| src/index.css | font-display: swap → optional + @font-face Poppins Fallback con size-adjust |
-| src/App.jsx | evaluate() → requestAnimationFrame(evaluate) + placeholder div en secciones pendientes |
+| src/index.css | font-display: swap → optional + @font-face Poppins Fallback with size-adjust |
+| src/App.jsx | evaluate() → requestAnimationFrame(evaluate) + placeholder div on pending sections |
 
 ---
 
 ## ✅ Conclusion
 
-| Punto | Resultado |
-|-------|-----------|
-| Flash al inicio (primera carga) | ✅ Eliminado |
-| Corte al scrollear a Work Experience | ✅ Eliminado |
+| Point | Result |
+|-------|--------|
+| Flash on initial load (cold first load) | ✅ Eliminated |
+| Cut when scrolling to Work Experience | ✅ Eliminated |
 | CLS (Cumulative Layout Shift) | ✅ 0 |
 | FCP / LCP | ✅ < 2.5 s |
-| Build de produccion | ✅ Sin errores |
+| Production build | ✅ No errors |
