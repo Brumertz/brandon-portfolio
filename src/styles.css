@@ -229,31 +229,65 @@ canvas {
   }
 }
 
-/* Technology grid — the static sphere shown instead of <BallCanvas> on
-   touch-only devices (see IS_TOUCH in Tech.jsx).
+/* Technology grid — the static sphere shown instead of <BallCanvas> whenever
+   WebGL is off for the ball (narrow touch viewports, or the context budget
+   tripped — see useBallMode in Tech.jsx).
 
    Background artwork, not interaction: the cell keeps its `title`/`aria-label`,
    so all this has to do is reproduce what the WebGL version looks like. The
-   base tone and the two inset shadows stand in for the ball's material colour
-   (#aaa6c3) and the directional light it receives. */
+   WebGL ball renders #aaa6c3 through a frontal-upper key light with
+   `flatShading`, which reads as *discrete dark facets*, not a smooth lit
+   ball — hence a hard-stepped conic gradient (flat planes of colour, each one
+   a "facet") under a radial highlight, with the original inset shadows adding
+   roundness on top. The icon rides on ::after so it paints above that stack;
+   Tech.jsx hands it over as `--tech-icon` because an inline
+   `background-image` would clobber every gradient layered here. */
 .tech-sphere {
+  position: relative;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background-color: #aaa6c3;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 62%;
+  background-color: #5e5c74;
+  background-image:
+    radial-gradient(
+      115% 115% at 30% 24%,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0.14) 38%,
+      rgba(255, 255, 255, 0) 62%
+    ),
+    conic-gradient(
+      from -45deg at 50% 47%,
+      #a3a1ba 0deg 40deg,
+      #8b89a3 40deg 80deg,
+      #757390 80deg 120deg,
+      #605e78 120deg 160deg,
+      #4e4d62 160deg 200deg,
+      #43424f 200deg 240deg,
+      #4b4a5b 240deg 280deg,
+      #5e5c74 280deg 320deg,
+      #807e99 320deg 360deg
+    );
   box-shadow:
     inset -11px -13px 24px rgba(4, 6, 22, 0.55),
     inset 9px 9px 20px rgba(255, 255, 255, 0.3);
   animation: tech-sphere-float 4.5s ease-in-out infinite;
 }
 
+/* The decal. <Decal scale={1}> on a ball scaled 2.75 spans a bit over half
+   the silhouette — 54% keeps the same icon-to-ball ratio as the WebGL ball
+   (the old flat sphere overscaled it at 62%). */
+.tech-sphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--tech-icon) center / 54% no-repeat;
+}
+
 /* What <Float> gave the WebGL balls — a gentle bob plus a sway — rebuilt in
    CSS so the grid still breathes without owning a WebGL context.
-   `perspective` lives on the cell, which Tech.jsx only emits on touch-only
-   devices, so the desktop spheres are unaffected. */
+   `perspective` lives on the cell, which Tech.jsx emits whenever the static
+   fallback is active, so WebGL-rendered balls are unaffected. */
 .tech-cell {
   perspective: 420px;
 }

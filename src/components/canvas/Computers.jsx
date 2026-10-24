@@ -1,15 +1,35 @@
 import { Suspense, useEffect, useState, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
 import CanvasLoader from "../Loader";
 import { configureRenderer } from "./rendererConfig";
 import WarmUp from "./WarmUp";
+// Side effect: starts observing `webglcontextlost` from the hero mount, so the
+// shared context budget (utils/webglBudget.js) is known before any ball cell
+// ever asks about it.
+import "../../utils/webglBudget";
+
+// Camera framing constants. `BASE_Z`/`VERTICAL_FOV` mirror the Canvas
+// `camera` prop below — if one changes, change both.
+const BASE_Z = 14;
+const VERTICAL_FOV = 30;
+const MODEL_Z = -1.5; // the model's z offset (primitive position)
+// How much of the frame's half-width the desk's worst-case reach (rest box +
+// sway, see the measurement below) occupies *when* we intervene. The residual
+// 8% is compositional breathing room, not sway headroom — that is already in
+// the measurement.
+const FIT_FILL = 0.92;
+// Narrowest aspect the fit still answers to; below that (a 200px devtools
+// pane) the desk would shrink to a thumbnail anyway, so we cap the pull-back
+// instead of chasing the division to infinity.
+const MAX_Z = 46;
 
 const Computers = ({ isMobile }) => {
   const computer = useGLTF("./desktop_pc/scene.gltf");
   const groupRef = useRef();
+  const primitiveRef = useRef();
 
   useEffect(() => {
     computer.scene.traverse((child) => {
@@ -40,6 +60,71 @@ const Computers = ({ isMobile }) => {
     }
   });
 
+  // --- horizontal fit -------------------------------------------------------
+  // The authored camera (fov 30, z 14) was framed for a wide viewport: at
+  // aspect 1.6 the horizontal fov is ~46°, which comfortably holds the desk.
+  // A phone at aspect ~0.46 has a horizontal fov of ~14° — the same model,
+  // even re-scaled to 0.45, gets sliced through the monitor on the left and
+  // the tower on the right. Narrowing the aspect narrows the *visible* width
+  // at the model's plane far faster than the isMobile scale shrinks the model,
+  // so the only variable left that can restore the framing is camera distance.
+  const camera = useThree((state) => state.camera);
+  const size = useThree((state) => state.size);
+  const [deskHalfWidth, setDeskHalfWidth] = useState(0);
+  const authoredZ = useRef(null);
+
+  // Measure the desk's world-space extent *after* the primitive's transform
+  // is committed: the -90° yaw swaps the model's x/z extents, so a box taken
+  // during render (before r3f applies scale/position/rotation) would fit
+  // against the wrong axis.
+  //
+  // The bound is expanded for the group's idle sway (rotation.y oscillates
+  // ±0.1 rad): a rotation about the origin moves a corner by
+  // x·cos(θ) ∓ z·sin(θ), so the worst-case lateral reach is the largest
+  // |x|·cos(0.1) + largest |z|·sin(0.1) over the box — at narrow aspects that
+  // sway sweeps a much larger share of the frame than it does on desktop, and
+  // a fit against the at-rest box alone lets the desk clip the edge mid-sway.
+  // Re-runs on isMobile because the scale changes.
+  const SWAY = 0.1;
+  useEffect(() => {
+    const object = primitiveRef.current;
+    if (!object) return;
+    object.updateWorldMatrix(true, true);
+    const box = new THREE.Box3().setFromObject(object);
+    const reachX = Math.max(Math.abs(box.min.x), Math.abs(box.max.x));
+    const reachZ = Math.max(Math.abs(box.min.z), Math.abs(box.max.z));
+    const halfWidth = reachX * Math.cos(SWAY) + reachZ * Math.sin(SWAY);
+    if (Number.isFinite(halfWidth) && halfWidth > 0) setDeskHalfWidth(halfWidth);
+  }, [computer.scene, isMobile]);
+
+  useEffect(() => {
+    // Capture the camera as authored/controls-clamped before this component
+    // ever moves it, so a window that grows back to desktop proportions
+    // returns to the exact original framing (not a rounded copy of it).
+    if (authoredZ.current === null) authoredZ.current = camera.position.z;
+    if (deskHalfWidth <= 0) return;
+
+    const aspect = Math.max(size.width / size.height, 0.1);
+    const halfV = (VERTICAL_FOV / 2) * (Math.PI / 180);
+    // Camera z that lets FIT_FILL of the frame's half-width hold the desk's
+    // larger side: visibleHalfWidth = (z - MODEL_Z) * tan(halfV) * aspect.
+    const neededZ =
+      deskHalfWidth / FIT_FILL / (Math.tan(halfV) * aspect) + MODEL_Z;
+
+    // `neededZ <= BASE_Z` means the authored framing already fits — leave the
+    // camera completely untouched so desktop rendering cannot regress.
+    const targetZ =
+      neededZ > BASE_Z ? Math.min(neededZ, MAX_Z) : authoredZ.current;
+    if (Math.abs(camera.position.z - targetZ) < 0.01) return;
+
+    camera.position.z = targetZ;
+    // Re-aim at OrbitControls' target (the origin). Without this the old
+    // orientation survives a programmatic z change until the first drag — and
+    // on touch devices there is never a drag: styles.css disables pointer
+    // events on canvases under `hover: none`.
+    camera.lookAt(0, 0, 0);
+  }, [camera, size, deskHalfWidth]);
+
   return (
     <group ref={groupRef}>
       <hemisphereLight intensity={3.5} groundColor={new THREE.Color("black")} />
@@ -53,6 +138,7 @@ const Computers = ({ isMobile }) => {
       />
       <pointLight intensity={3} position={[-5, 5, -5]} />
       <primitive
+        ref={primitiveRef}
         object={computer.scene}
         scale={isMobile ? 0.45 : 0.75}
         position={isMobile ? [0, -2.25, -1.5] : [0, -3.25, -1.5]}
@@ -106,4 +192,3 @@ const ComputersCanvas = () => {
 useGLTF.preload("./desktop_pc/scene.gltf");
 
 export default ComputersCanvas;
-
