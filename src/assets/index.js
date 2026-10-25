@@ -28,6 +28,7 @@ import projectDflorarte from "./projects/dflorarte.webp";
 import projectBrzstore from "./projects/brzstore.webp";
 import projectIcarus from "./projects/icarus.webp";
 import projectSqlKnowledge from "./projects/sqlknowledge.webp";
+import projectIcarusFleet from "./projects/icarusfleet.webp";
 
 export {
   logo,
@@ -55,4 +56,5 @@ export {
   projectBrzstore,
   projectIcarus,
   projectSqlKnowledge,
+  projectIcarusFleet,
 };

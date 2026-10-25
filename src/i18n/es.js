@@ -11,7 +11,7 @@ import {
   projectDflorarte,
   projectBrzstore,
   projectIcarus,
-  projectSqlKnowledge,
+  projectIcarusFleet,
 } from "../assets";
 
 const es = {
@@ -230,16 +230,16 @@ const es = {
         source_code_link: "https://github.com/Brumertz/Icarus_Drone_Service_App",
       },
       {
-        name: "SQL Knowledge",
+        name: "Icarus Fleet",
         description:
-          "Proyecto multisitio que muestra distintos diseños a partir de una capa de datos SQL compartida, combinando PHP, JavaScript y Bootstrap sobre una base de datos relacional.",
+          "API de colas de servicio y panel web para mantenimiento de drones construida con ASP.NET Core: colas FIFO Regular y Express, cálculo atómico de recargos, etiquetas secuenciales e interfaz Swagger.",
         tags: [
-          { name: "sql", color: "blue-text-gradient" },
-          { name: "php", color: "green-text-gradient" },
-          { name: "bootstrap", color: "pink-text-gradient" },
+          { name: "c#", color: "blue-text-gradient" },
+          { name: ".net", color: "green-text-gradient" },
+          { name: "minimal-api", color: "pink-text-gradient" },
         ],
-        image: projectSqlKnowledge,
-        source_code_link: "https://github.com/Brumertz/SQL_Knowledge",
+        image: projectIcarusFleet,
+        source_code_link: "https://github.com/Brumertz/Icarus-Fleet",
       },
     ],
   },
